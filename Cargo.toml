@@ -3,5 +3,8 @@ name = "countess"
 version = "0.1.0"
 authors = ["bstrie <bstrie@thin>"]
 edition = "2018"
+description = "Thus not only the mental and the material, but the theoretical and the practical in the mathematical world, are brought into more intimate and effective connection with each other."
+repository = "https://github.com/bstrie/countess"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
