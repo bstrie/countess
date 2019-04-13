@@ -1,0 +1,7 @@
+[package]
+name = "countess"
+version = "0.1.0"
+authors = ["bstrie <bstrie@thin>"]
+edition = "2018"
+
+[dependencies]
