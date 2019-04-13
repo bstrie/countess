@@ -5,6 +5,7 @@ authors = ["bstrie <bstrie@thin>"]
 edition = "2018"
 description = "Thus not only the mental and the material, but the theoretical and the practical in the mathematical world, are brought into more intimate and effective connection with each other."
 repository = "https://github.com/bstrie/countess"
-license = "MIT OR Apache-2.0"
+license = "MIT/Apache-2.0"
+readme = "README"
 
 [dependencies]
