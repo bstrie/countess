@@ -1,22 +1,20 @@
-use std::ops::Add;
+extern crate proc_macro;
+use proc_macro::TokenStream;
+use quote::quote;
 
-#[derive(Debug, PartialEq)]
-pub struct Foo(i32);
+#[proc_macro_attribute]
+pub fn hello(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let input = syn::parse_macro_input!(item as syn::ItemFn);
+    let name = &input.ident;
 
-impl Add for Foo {
-    type Output = Foo;
-    fn add(self, other: Foo) -> Foo {
-        Foo(self.0 + other.0)
-    }
+    // Our input function is always equivalent to returning 42, right?
+    let result = quote! {
+        fn #name() -> u32 { 42 }
+    };
+    result.into()
 }
+
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    #[test]
-    fn add() {
-        let bar = Foo(1);
-        let qux = Foo(2);
-        assert_eq!(bar + qux, Foo(3));
-    }
 }

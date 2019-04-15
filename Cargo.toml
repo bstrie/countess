@@ -8,4 +8,9 @@ repository = "https://github.com/bstrie/countess"
 license = "MIT/Apache-2.0"
 readme = "README"
 
+[lib]
+proc-macro = true
+
 [dependencies]
+syn = { version = "0.15.30", features = ["full"] }
+quote = "0.6.12"
