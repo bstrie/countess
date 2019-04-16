@@ -1,20 +1,28 @@
+#![allow(unused_variables)]
+
 extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
 
 #[proc_macro_attribute]
-pub fn hello(attr: TokenStream, item: TokenStream) -> TokenStream {
-    println!("{:?}", attr);
-    println!("{:?}", item);
-    let input = syn::parse_macro_input!(item as syn::ItemFn);
+pub fn range(attr: TokenStream, item: TokenStream) -> TokenStream {
+    println!("--- attr ---\n{:?}\n", attr);
+    println!("--- item ---\n{:?}\n", item);
+    //let pattr = syn::parse_macro_input!(attr as syn::ExprRange);
+    let input = syn::parse_macro_input!(item as syn::ItemStruct);
     let name = &input.ident;
 
-    // Our input function is always equivalent to returning 42, right?
+    // TODO: We're gonna need hygiene SOMEWHERE in here, right?
     let result = quote! {
-        const FOO: i32 = 42;
+        struct #name(i32);
+        impl #name {
+            fn new(value: i32) -> #name { #name(value) }
+            const LOWER: i32 = 99;
+            const UPPER: i32 = 999;
+        }
     };
     let result: TokenStream = result.into();
-    println!("{:?}", result);
+    println!("--- result ---\n{:?}\n", result);
     result
 }
 

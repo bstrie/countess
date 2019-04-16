@@ -1,7 +1,9 @@
-#[countess::hello]
-fn wrapped_function() {}
+use countess::range;
+
+#[range(99..999)]
+struct Foo;
 
 #[test]
 fn works() {
-    assert_eq!(42, FOO);
+    assert_eq!(99, Foo::LOWER);
 }
