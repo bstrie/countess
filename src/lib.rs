@@ -84,7 +84,7 @@ pub fn range(attr: TokenStream, item: TokenStream) -> TokenStream {
     //println!("--- attr ---\n{:?}\n", attr);
     //println!("--- item ---\n{:?}\n", item);
     let pattr = parse_macro_input!(attr as RangeSeq);
-    println!("{:#?}", pattr);
+    //println!("{:#?}", pattr);
     let input = parse_macro_input!(item as ItemStruct);
     let name = &input.ident;
 
