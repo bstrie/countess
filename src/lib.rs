@@ -112,11 +112,6 @@ pub fn range(attr: TokenStream, item: TokenStream) -> TokenStream {
     //println!("--- result ---\n{:?}\n", result);
     result
 }
-/*
-#[prac_macro_attribute]
-pub fn make_int(attr: TokenStream, item:TokenStream) -> TokenStream {
-	let pinput = parse_macro_input!(item as ItemTrait);
-*/
 
 #[cfg(test)]
 mod tests {
