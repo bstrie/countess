@@ -6,10 +6,8 @@
 struct n64(u64);
 
 impl n64 {
-	const MAX: Self = n64(std::u64::MAX);
-	const MIN: Self = n64(std::u64::MIN);
-	const fn min_value() -> Self { n64(u64::min_value()) }
-	const fn max_value() -> Self { n64(u64::max_value()) }
+	const MAX: Self = n64(99);
+	const MIN: Self = n64(10);
 	fn from_str_radix(src: &str, radix: u32) -> Result<Self, std::num::ParseIntError> { Ok(n64(u64::from_str_radix(src, radix)?)) }
 	const fn count_ones(self) -> u32 { self.0.count_ones() }
 	const fn count_zeros(self) -> u32 { self.0.count_zeros() }

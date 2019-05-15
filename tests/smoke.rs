@@ -1,6 +1,6 @@
-use countess::range;
+use countess::valid;
 
-#[range(-20..=200, 30..300, ..40, 50..)]
+#[valid(-20..=200, 30..300, ..40, 50..)]
 struct Foo(i32);
 
 #[test]

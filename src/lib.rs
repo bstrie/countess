@@ -4,7 +4,7 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    Expr, ExprLit, ExprRange, ExprUnary, ItemStruct, ItemTrait, Lit, RangeLimits, Result, Token, UnOp, parse_macro_input,
+    Expr, ExprLit, ExprRange, ExprUnary, ItemStruct, Lit, RangeLimits, Result, Token, UnOp, parse_macro_input,
     parse::{Parse, ParseStream},
     punctuated::Punctuated,
 };
@@ -89,7 +89,7 @@ impl Parse for RangeSeq {
 }
 
 #[proc_macro_attribute]
-pub fn range(attr: TokenStream, item: TokenStream) -> TokenStream {
+pub fn valid(attr: TokenStream, item: TokenStream) -> TokenStream {
     //println!("--- attr ---\n{:?}\n", attr);
     //println!("--- item ---\n{:?}\n", item);
     let pattr = parse_macro_input!(attr as RangeSeq);
