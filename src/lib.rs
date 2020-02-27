@@ -9,39 +9,50 @@ use syn::{
     punctuated::Punctuated,
 };
 
-trait SimplifyLimit {
-    fn simple(self) -> Option<i128>;
-    fn extract(expr: Expr) -> i128;
+/// A procedural macro enabling Ada-style range-checked integers.
+///
+/// ```
+/// use countess::valid;
+///
+/// #[valid(0..10)]
+/// struct Foo(i32);
+/// ```
+#[proc_macro_attribute]
+pub fn valid(attr: TokenStream, item: TokenStream) -> TokenStream {
+    //dbg!(&attr);
+    //dbg!(&item);
+
+    let pattr = parse_macro_input!(attr as RangeSeq);
+    //println!("{:#?}", pattr);
+
+    // TODO: parse as custom num newtype
+    let input = parse_macro_input!(item as ItemStruct);
+
+    let name = &input.ident;
+
+	let (lower, upper) = match pattr.ranges[0] {
+		Range {lower, upper, ..} => (lower.unwrap() as i32, upper.unwrap() as i32)
+	};
+
+    // TODO: use declarative macro inside of quote to contain the actual impls
+    let result: TokenStream = quote! {
+        struct #name(i32);
+        impl #name {
+            const LOWER: i32 = #lower;
+            const UPPER: i32 = #upper;
+        }
+    }.into();
+    //dbg!(&result);
+
+    result
 }
 
-// The limits of a range can be any expression;
-// currently we only support integer literals as limits
-// (otherwise we would need to, uh, depend on Miri or something...)
-// so extract the number that the literal represents,
-// and produce a compiler error on any more complex expression.
-impl SimplifyLimit for Option<Box<Expr>> {
-    fn simple(self) -> Option<i128> {
-        match self {
-            None => None,
-            Some(expr) => Some(Self::extract(*expr))
-        }
-    }
-
-    fn extract(limit_expr: Expr) -> i128 {
-        match limit_expr {
-            Expr::Lit(ExprLit { lit: Lit::Int(num), .. }) => {
-                num.value() as i128
-            },
-            Expr::Unary(ExprUnary { op: UnOp::Neg(_), expr, .. }) => -Self::extract(*expr),
-            _ => panic!("Expressions other than numeric literals are not currently supported")
-        }
-    }
+#[derive(Debug)]
+struct RangeSeq {
+	ranges: Vec<Range>
 }
 
-// A range is either open (inclusive of the upper bound)
-// or closed (exclusive of the upper bound).
-// Currently syn does not have nice support for parsing 128-bit ints,
-// so we constrain our support to 64-bit bounds.
+// For ease of initial implementation we only support 64-bit numeric types.
 // This means that an i128 can hold all supported bounds,
 // be they positive or negative.
 // A user may also omit one of the bounds,
@@ -49,19 +60,16 @@ impl SimplifyLimit for Option<Box<Expr>> {
 // cannot be determined until we parse the underlying type,
 // so at this stage we use a None to represent an omitted bound.
 #[derive(Debug)]
-enum Interval { Open, Closed }
-
-#[derive(Debug)]
 struct Range {
+	interval: Interval,
     lower: Option<i128>,
     upper: Option<i128>,
-	interval: Interval,
 }
 
+// A range is either open (inclusive of the upper bound)
+// or closed (exclusive of the upper bound).
 #[derive(Debug)]
-struct RangeSeq {
-	ranges: Vec<Range>
-}
+enum Interval { Open, Closed }
 
 // Implementing syn::Parse is how syn allows one to
 // hook into the syn::parse_macro_input! macro.
@@ -76,8 +84,8 @@ impl Parse for RangeSeq {
         let mut rseq = RangeSeq { ranges: Vec::new() };
         for ExprRange {limits, from, to, ..} in ranges_ast {
 			rseq.ranges.push(Range {
-				lower: from.simple(),
-				upper: to.simple(),
+				lower: simplify(from),
+				upper: simplify(to),
 				interval: match limits {
 					RangeLimits::HalfOpen(_) => Interval::Open,
 					RangeLimits::Closed(_) => Interval::Closed
@@ -88,31 +96,23 @@ impl Parse for RangeSeq {
     }
 }
 
-#[proc_macro_attribute]
-pub fn valid(attr: TokenStream, item: TokenStream) -> TokenStream {
-    //println!("--- attr ---\n{:?}\n", attr);
-    //println!("--- item ---\n{:?}\n", item);
-    let pattr = parse_macro_input!(attr as RangeSeq);
-    //println!("{:#?}", pattr);
-    let input = parse_macro_input!(item as ItemStruct);
-    let name = &input.ident;
-
-	let (lower, upper) = match pattr.ranges[0] {
-		Range {lower, upper, ..} => (lower.unwrap() as i32, upper.unwrap() as i32)
-	};
-    // TODO: We're gonna need hygiene SOMEWHERE in here, right?
-    let result = quote! {
-        struct #name(i32);
-        impl #name {
-            const LOWER: i32 = #lower;
-            const UPPER: i32 = #upper;
-        }
-    };
-    let result: TokenStream = result.into();
-    //println!("--- result ---\n{:?}\n", result);
-    result
+// The limits of a range can be any expression;
+// currently we only support integer literals as limits.
+// Here we extract the number that the literal represents,
+// and produce a compiler error on any more complex expression.
+fn simplify(limit: Option<Box<Expr>>) -> Option<i128> {
+    match limit {
+        None => None,
+        Some(expr) => Some(extract_val(expr))
+    }
 }
 
-#[cfg(test)]
-mod tests {
+fn extract_val(limit_expr: Box<Expr>) -> i128 {
+    match *limit_expr {
+        Expr::Lit(ExprLit { lit: Lit::Int(num), .. }) => {
+            num.base10_parse::<i128>().expect("Literal could not be parsed as i128")
+        },
+        Expr::Unary(ExprUnary { op: UnOp::Neg(_), expr, .. }) => -extract_val(expr),
+        _ => panic!("Expressions other than numeric literals are not currently supported")
+    }
 }
